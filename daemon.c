@@ -23,6 +23,8 @@ int main(int argc, char **argv)
 	int s_pid;
 	int s_sid;
 	int s_errno;
+	int s_check;
+	int s_num=0;
 	FILE *fp;
 
 	if(argc != 2){
@@ -31,13 +33,13 @@ int main(int argc, char **argv)
 	}
 
 	if(strcmp(argv[1], "start") == 0){
-		s_daemon_status = 0;
+		s_daemon_status = START; /* 0 */
 	}
 	else if(strcmp(argv[1], "stop") == 0){
-		s_daemon_status = 1;
+		s_daemon_status = STOP; /* 1 */
 	}
 	else if(strcmp(argv[1], "status") == 0){
-		s_daemon_status = 2;
+		s_daemon_status = STATUS; /* 2 */
 	}
 	else{
 		(void)show_help();
@@ -46,7 +48,7 @@ int main(int argc, char **argv)
 
 	if(s_daemon_status == START){
 		fp = fopen(PIDFILE, "r");
-		if(fp != NULL){
+		if(fp != (FILE *)NULL){
 			printf("%s is already running\n", def_daemon_name);	
 			fclose(fp);
 			exit(0);
@@ -86,10 +88,7 @@ int main(int argc, char **argv)
 		fprintf(fp, "%d", getpid());
 		fclose(fp);
 
-		while(1){
-			
-		}	
-		printf("%s started\n", def_daemon_name);
+		printf("*[%s] started\n", def_daemon_name);
 	}
 	else if(s_daemon_status == STOP){
 		FILE *fp;
@@ -100,17 +99,21 @@ int main(int argc, char **argv)
 			printf("%s is not running\n", def_daemon_name);	
 			exit(0);
 		}
-		fscanf(fp, "%d", &s_get_pid);
+		s_check = fscanf(fp, "%d", &s_get_pid);
+		if(s_check == 0){
+			printf("fscanf failed\n");
+			return 0;
+		}
 		fclose(fp);
 
 		kill(s_get_pid, SIGKILL);
 
-		if(remove(PIDFILE) == -1){
-			printf("%s remove failed\n", PIDFILE);
-			exit(1);
-		}
+		do{
+			s_check = remove(PIDFILE);
 
-		printf("%s stopped\n", def_daemon_name);
+		}while(s_check == (-1));
+
+		printf("*[%s] stopped\n", def_daemon_name);
 	}
 	else if(s_daemon_status == STATUS){
 		FILE *fp;
@@ -121,12 +124,26 @@ int main(int argc, char **argv)
 			printf("%s is not running\n", def_daemon_name);	
 			exit(0);
 		}
-		fscanf(fp, "%d", &s_get_pid);
+		s_check = fscanf(fp, "%d", &s_get_pid);
+		if(s_check == 0){
+			printf("fscanf failed\n");
+			return 0;
+		}
 		fclose(fp);
-		printf("%s is running\n", def_daemon_name);
+		printf("*[%s] is running\n", def_daemon_name);
 	}
 
-	/* remove pid fild */
 
-	return 0;
+	if(s_daemon_status == START){
+		/* main loop */
+		while(1){
+			/* create node */		
+			printf("%d\n", s_num);
+
+			s_num++;
+			sleep(1);
+		}
+	}
+
+	return -1;
 }
