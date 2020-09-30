@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "include/hyper_header.h"
 
+//---//
+
 #define START  0
 #define STOP   1
 #define STATUS 2
@@ -9,12 +11,71 @@
 
 #define def_daemon_name "cgleed"
 
-void show_help(void);
+//---//
 
-void show_help(void)
+static void show_help(void);
+list_t *init_linked_list(void);
+int insert_linked_list(list_t *list, int data);
+
+//---//
+
+//---//
+static void show_help(void)
 {
 	printf("./daemon [start|stop|status]\n");
 	return;
+}
+
+list_t *init_linked_list(void)
+{
+	list_t *s_list;
+
+	s_list = (list_t *)malloc(sizeof(list_t));
+	if(s_list == (list_t *)NULL){
+		printf("[INIT] list malloc failed\n");
+		return(list_t *)NULL;
+	}
+	s_list->m_head = (node_t *)NULL;
+	s_list->m_tail = (node_t *)NULL;
+	s_list->m_count = 0;
+
+	printf("[INIT] list\n");
+	
+	return(list_t *)s_list;
+}
+
+int insert_linked_list(list_t *list, int data)
+{
+	node_t *s_node;
+
+	if(list == (list_t *)NULL){
+		printf("[INSERT] list is NULL\n");
+		return -1;
+	}
+
+	/* create node */		
+	s_node = (node_t *)malloc(sizeof(node_t));
+	if(s_node == (node_t *)NULL){
+		printf("node malloc failed\n");
+	}
+	s_node->m_data = data;
+	s_node->m_next = NULL;
+
+	if((list->m_head == (node_t *)NULL) ||
+			(list->m_tail == (node_t *)NULL)){
+
+		list->m_head = list->m_tail = s_node;
+		printf("[INSERT] first insert\n");
+		printf("[INSERT] data[%d] node[%p] next[%p]\n",
+				s_node->m_data,
+				s_node,
+				s_node->m_next);
+	}
+	else{
+		printf("[INSERT] insert\n");
+	}
+	
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -135,12 +196,20 @@ int main(int argc, char **argv)
 
 
 	if(s_daemon_status == START){
+		list_t *s_list = NULL;
+
+		/* init list */
+		s_list = init_linked_list();
+
 		/* main loop */
 		while(1){
-			/* create node */		
-			printf("%d\n", s_num);
+			/* insert list */
+			++s_num;
+			s_check = insert_linked_list((list_t *)s_list, s_num);
+			if(s_check == (-1)){
+				printf("[INSERT] insert linked list failed\n");
+			}
 
-			s_num++;
 			sleep(1);
 		}
 	}

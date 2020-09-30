@@ -1,5 +1,6 @@
 CC=gcc
-CFLAGS=-g -Wall
+INC=-I./include
+CFLAGS=-g -Wall $(INC)
 OBJS=daemon.o
 TARGET=cgleed
 
